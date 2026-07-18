@@ -601,7 +601,7 @@
 
     <script>
       // Thay LINK_CUA_TOI bằng URL API JSON hoặc URL CSV đã "Xuất bản lên web" từ Google Sheet.
-      const API_URL = "LINK_CUA_TOI";
+      const API_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRpfMUJCiPSrbPAFKaCxu0ETXjxy-FhUymIKHlZIgzhSDAb4iAnyZqHh9mF5xcczw/pub?gid=2080272576&single=true&output=csv";
       // Có thể thử nguồn dữ liệu tạm thời bằng ?source=URL_CSV trước khi chèn cố định vào API_URL.
       const QUERY_API_URL = new URLSearchParams(window.location.search).get("source") || "";
       const ACTIVE_API_URL = API_URL !== "LINK_CUA_TOI" ? API_URL : QUERY_API_URL;
