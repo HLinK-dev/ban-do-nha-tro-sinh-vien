@@ -1,6 +1,6 @@
-# Bản đồ hỗ trợ tra cứu nhà trọ sinh viên
+# Bản đồ hỗ trợ tìm kiếm nhà trọ cho Tân Sinh viên Đại học Cần Thơ
 
-Website công khai hỗ trợ sinh viên tra cứu nhà trọ trong bán kính 20 km quanh Đại học Cần Thơ. Thông tin do Đoàn Thanh niên tổng hợp để tham khảo; website không phải nền tảng môi giới và không xử lý đặt cọc.
+Website công khai hỗ trợ sinh viên tìm kiếm nhà trọ trong bán kính 20 km quanh Đại học Cần Thơ. Thông tin do Đoàn Thanh niên - Hội Sinh viên Đại học Cần Thơ tổng hợp để tham khảo; website không phải nền tảng môi giới và không xử lý đặt cọc.
 
 ## Kiến trúc
 
@@ -59,5 +59,5 @@ Liên kết rút gọn `maps.app.goo.gl` vẫn dùng cho nút chỉ đường, n
 Thay `index.html` trong nhánh `main`. GitHub Pages sẽ tự triển khai sau vài phút. Khi kiểm tra bản mới, mở URL kèm tham số chống bộ nhớ đệm, ví dụ:
 
 ```text
-https://hlinh-2k5.github.io/ban-do-nha-tro-sinh-vien/?v=20260719
+https://ban-do-nha-tro-sinh-vien.hotrotansinhvien-ctu.workers.dev/
 ```
