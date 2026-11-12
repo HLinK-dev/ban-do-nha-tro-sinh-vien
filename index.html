@@ -1388,7 +1388,7 @@
 
       function distanceLabel(room) {
         const meters = distanceFromUniversity(room);
-        if (!Number.isFinite(meters)) return "";
+        if (!Number.isFinite(meters)) return "Chưa xác định vị trí";
         if (meters < 1000) return `${Math.max(10, Math.round(meters / 10) * 10)} m từ ĐHCT`;
         return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(meters / 1000)} km từ ĐHCT`;
       }
@@ -1801,6 +1801,7 @@
         const directions = mapsUrl(room);
         const utilities = [
           utilityBadge(distanceLabel(room)),
+          !hasCoordinates(room) ? utilityBadge("Chưa áp dụng lọc khoảng cách") : "",
           room.dienTich !== null ? utilityBadge(`${formatMeasurement(room.dienTich)} m²`) : "",
           room.soPhongTrong !== null ? utilityBadge(`Còn ${room.soPhongTrong}${room.tongSoPhong !== null ? `/${room.tongSoPhong}` : ""} phòng`) : "",
           room.soNguoiToiDa !== null ? utilityBadge(`Tối đa ${room.soNguoiToiDa} người`) : "",
@@ -1834,7 +1835,7 @@
             ${room.gioGiac ? `<p class="mt-2 rounded-xl bg-slate-50 px-2.5 py-2 text-[10px] font-medium leading-4 text-slate-600"><strong>Giờ giấc:</strong> ${escapeHTML(room.gioGiac)}</p>` : ""}
 
             <div class="room-actions">
-              <button class="room-action room-action--map" data-map-id="${escapeHTML(room.id)}" type="button" aria-label="Xem ${escapeHTML(room.tenTro)} trên bản đồ">Bản đồ</button>
+              ${hasCoordinates(room) ? `<button class="room-action room-action--map" data-map-id="${escapeHTML(room.id)}" type="button" aria-label="Xem ${escapeHTML(room.tenTro)} trên bản đồ">Bản đồ</button>` : `<button class="room-action room-action--map" type="button" disabled title="Chưa có tọa độ chính xác">Chưa có ghim</button>`}
               ${directions ? `<a class="room-action room-action--directions" href="${escapeHTML(directions)}" target="_blank" rel="noopener noreferrer" aria-label="Chỉ đường đến ${escapeHTML(room.tenTro)} bằng Google Maps">Chỉ đường</a>` : `<button class="room-action" type="button" disabled>Chưa có vị trí</button>`}
               <button class="room-action room-action--detail" data-detail-id="${escapeHTML(room.id)}" type="button">Thông tin</button>
             </div>
@@ -1915,7 +1916,7 @@
         state.filteredRooms = state.allRooms.filter((room) => {
           if (room.trangThai === "Tạm ẩn") return false;
           if (room.giaThapNhat > maxPrice) return false;
-          if (distanceFromUniversity(room) > maxDistance) return false;
+          if (hasCoordinates(room) && distanceFromUniversity(room) > maxDistance) return false;
           if (selectedWard && normalizeText(room.xaPhuong) !== selectedWard) return false;
           if (onlyAir && !room.mayLanh) return false;
           if (onlyLoft && !room.coGac) return false;
@@ -2262,17 +2263,18 @@
           if (!normalizedRooms.length) throw new Error("Google Sheet chưa có dòng hợp lệ");
 
           const uniqueRooms = [...new Map(normalizedRooms.map((room) => [room.id, room])).values()];
-          const missingCoordinates = uniqueRooms.filter((room) => !hasCoordinates(room)).length;
+          const missingCoordinates = uniqueRooms.filter((room) => !hasCoordinates(room) && room.trangThai !== "Tạm ẩn").length;
           const outsideRadius = uniqueRooms.filter((room) => hasCoordinates(room) && !isWithinMaxRadius(room)).length;
-          state.allRooms = uniqueRooms.filter((room) => hasCoordinates(room) && isWithinMaxRadius(room));
+          state.allRooms = uniqueRooms.filter((room) => !hasCoordinates(room) || isWithinMaxRadius(room));
           populateWardFilter(state.allRooms);
           const unverifiedFlood = state.allRooms.filter((room) => room.ngapKhiMua === "Chưa xác minh").length;
 
           const skipped = [];
-          if (missingCoordinates) skipped.push(`${missingCoordinates} dòng thiếu tọa độ`);
+          // Rooms without coordinates remain searchable in the list; never invent map pins.
           if (outsideRadius) skipped.push(`${outsideRadius} dòng ngoài bán kính tối đa 10 km`);
-          if ((skipped.length || unverifiedFlood) && !usingCache) {
+          if ((skipped.length || unverifiedFlood || missingCoordinates) && !usingCache) {
             const messages = [];
+            if (missingCoordinates) messages.push(`${missingCoordinates} nhà trọ chưa xác định vị trí: vẫn có trong danh sách nếu phù hợp bộ lọc, chưa có ghim và không áp dụng lọc khoảng cách. Hãy liên hệ chủ trọ để xác nhận địa chỉ.`);
             if (skipped.length) messages.push(`Tạm không hiển thị ${skipped.join(", ")}.`);
             if (unverifiedFlood) messages.push(`${unverifiedFlood} nhà trọ chưa xác minh tình trạng ngập.`);
             elements.sourceNotice.textContent = `Đã kết nối Google Sheet. ${messages.join(" ")}`;
